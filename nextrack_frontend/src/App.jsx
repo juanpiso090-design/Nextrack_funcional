@@ -1,122 +1,93 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { useState } from 'react';
+import LoginCard from './components/LoginCard';
+import Navbar from './components/Navbar';
+import StockMovementForm from './components/StockMovementForm';
+import AdminPanel from './components/AdminPanel';
+import InventoryTable from './components/InventoryTable';
+import './App.css';
 
+/**
+ * Componente Principal de la Aplicación Nextrack
+ * Administra el estado global de autenticación y la lista central de productos.
+ */
 function App() {
-  const [count, setCount] = useState(0)
+  // Estado para controlar el usuario autenticado
+  const [user, setUser] = useState(null);
 
+  // Estado global simulado con datos iniciales del inventario de Nextrack
+  const [productos, setProductos] = useState([
+    { id: 1, nombre: 'Cable HDMI 4K', descripcion: 'Cable de alta velocidad de 2 metros', precio: 15000, stock: 12, stockMinimo: 5 },
+    { id: 2, nombre: 'Adaptador USB-C', descripcion: 'Conversor a USB 3.0 de aluminio', precio: 25000, stock: 3, stockMinimo: 8 }, // Activa alerta inmediatamente
+    { id: 3, nombre: 'Teclado Mecánico', descripcion: 'Switch azul con retroiluminación RGB', precio: 120000, stock: 15, stockMinimo: 4 }
+  ]);
+
+  // Función para manejar el inicio de sesión exitoso
+  const loginUser = (userData) => {
+    setUser(userData);
+  };
+
+  // Función para cerrar la sesión activa
+  const logoutUser = () => {
+    setUser(null);
+  };
+
+  // Función global para actualizar existencias desde el formulario de movimientos
+  const actualizarStockGlobal = (idProd, tipo, cantidad) => {
+    setProductos(prevProductos => 
+      prevProductos.map(p => {
+        if (p.id === idProd) {
+          const nuevaCantidad = tipo === 'SUMA' ? p.stock + cantidad : p.stock - cantidad;
+          // Validación técnica: Evitar que el stock caiga por debajo de cero
+          if (nuevaCantidad < 0) {
+            alert(`Error: No hay suficiente stock de "${p.nombre}" para realizar la operación.`);
+            return p;
+          }
+          return { ...p, stock: nuevaCantidad };
+        }
+        return p;
+      })
+    );
+  };
+
+  // Función exclusiva para que el Administrador registre nuevos artículos
+  const agregarProductoNuevo = (nuevoProd) => {
+    setProductos(prev => [...prev, { ...nuevoProd, id: prev.length + 1 }]);
+  };
+
+  // Renderizado Condicional: Si no está logueado, muestra exclusivamente la pantalla de Login
+  if (!user) {
+    return <LoginCard onLoginSuccess={loginUser} />;
+  }
+
+  // Interfaz del Dashboard Principal una vez autenticado
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app-container">
+      <Navbar user={user} onLogout={logoutUser} />
+      
+      <main className="dashboard-content">
+        <section className="modules-grid">
+          {/* Módulo de Operaciones: Accesible para Operarios y Administradores */}
+          <div className="card-wrapper">
+            <h2>Módulo de Movimientos</h2>
+            <StockMovementForm productos={productos} onExecuteMovement={actualizarStockGlobal} />
+          </div>
 
-      <div className="ticks"></div>
+          {/* Módulo de Administración: Renderizado condicional estricto por Rol */}
+          {user.rol === 'Administrador' && (
+            <div className="card-wrapper admin-theme">
+              <h2 style={{ color: '#d35400' }}>Módulo de Administración (Exclusivo Admin)</h2>
+              <AdminPanel onAddProducto={agregarProductoNuevo} />
+            </div>
+          )}
+        </section>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {/* Tabla General de Inventario: Visible para todos los usuarios */}
+        <section className="inventory-section">
+          <InventoryTable productos={productos} />
+        </section>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
