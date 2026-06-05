@@ -27,7 +27,7 @@ public class CORSFilter implements Filter {
         String requestOrigin = req.getHeader("Origin");
         String allowedOrigin = "https://nextrack-funcional.vercel.app";
         if (requestOrigin != null && (allowedOrigin.equals(requestOrigin) || (allowedOrigin + "/").equals(requestOrigin))) {
-            res.setHeader("Access-Control-Allow-Origin", requestOrigin);
+            res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
             res.setHeader("Access-Control-Allow-Credentials", "true");
         }
         res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");

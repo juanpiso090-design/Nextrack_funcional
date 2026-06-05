@@ -28,8 +28,9 @@ public class ApiAuthServlet extends HttpServlet {
     @Override
     protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String origin = request.getHeader("Origin");
-        if (origin != null && origin.startsWith("https://nextrack-funcional.vercel.app")) {
-            response.setHeader("Access-Control-Allow-Origin", origin);
+        String allowedOrigin = "https://nextrack-funcional.vercel.app";
+        if (origin != null && (allowedOrigin.equals(origin) || (allowedOrigin + "/").equals(origin))) {
+            response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
             response.setHeader("Access-Control-Allow-Credentials", "true");
         }
         response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -40,8 +41,9 @@ public class ApiAuthServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String origin = request.getHeader("Origin");
-        if (origin != null && origin.startsWith("https://nextrack-funcional.vercel.app")) {
-            response.setHeader("Access-Control-Allow-Origin", origin);
+        String allowedOrigin = "https://nextrack-funcional.vercel.app";
+        if (origin != null && (allowedOrigin.equals(origin) || (allowedOrigin + "/").equals(origin))) {
+            response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
             response.setHeader("Access-Control-Allow-Credentials", "true");
         }
         response.setContentType("application/json;charset=UTF-8");
