@@ -24,8 +24,11 @@ public class CORSFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
-        // Permitir sólo el origen de tu frontend en Vercel
-        res.setHeader("Access-Control-Allow-Origin", "https://nextrack-funcional.vercel.app");
+        String requestOrigin = req.getHeader("Origin");
+        String allowedOrigin = "https://nextrack-funcional.vercel.app";
+        if (allowedOrigin.equals(requestOrigin)) {
+            res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+        }
         res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
         res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
         res.setHeader("Access-Control-Allow-Credentials", "true");
