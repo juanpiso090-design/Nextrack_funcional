@@ -1,4 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import Navbar from './components/Navbar.jsx';
+import InventoryTable from './components/InventoryTable.jsx';
+import StockMovementForm from './components/StockMovementForm.jsx';
+import AdminPanel from './components/AdminPanel.jsx';
+
+const BACKEND_BASE = 'https://nextrack-backend-3dfo.onrender.com';
+
+const adaptProducto = (producto) => ({
+  id: producto.id,
+  codigo: producto.codigo,
+  nombre: producto.nombre,
+  descripcion: producto.descripcion || '',
+  precio: producto.precio != null ? producto.precio : 0,
+  stock: producto.stock,
+  stockMinimo: producto.stockMinimo != null ? producto.stockMinimo : producto.stock_minimo || 0,
+});
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -6,42 +22,122 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [productos, setProductos] = useState([]);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   // Cargar inventario desde la API real cuando se inicia sesión
   useEffect(() => {
     if (session) {
-      fetch('https://nextrack-backend-3dfo.onrender.com/api/nextrack/productos')
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`Error HTTP ${res.status}`);
-          }
-          return res.json();
-        })
-        .then(data => setProductos(data))
-        .catch(err => {
-          console.error("Error cargando inventario:", err);
-          setError('No se pudo cargar el inventario.');
-        });
+      cargarInventario();
     }
   }, [session]);
+
+  const cargarInventario = async () => {
+    setError('');
+    setMessage('');
+    try {
+      const response = await fetch(`${BACKEND_BASE}/api/nextrack/productos`);
+      if (!response.ok) {
+        throw new Error(`Error HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      setProductos(data.map(adaptProducto));
+    } catch (err) {
+      console.error('Error cargando inventario:', err);
+      setError('No se pudo cargar el inventario.');
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setMessage('');
+
     try {
-      const response = await fetch('https://nextrack-backend-3dfo.onrender.com/api/nextrack/auth/login', {
+      const response = await fetch(`${BACKEND_BASE}/api/nextrack/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario: username, password })
+        body: JSON.stringify({ usuario: username, password }),
       });
+
       const data = await response.json();
       if (response.ok) {
-        setSession(data); // Guarda { usuario, rol }
+        setSession({ usuario: data.usuario, rol: data.rol });
       } else {
-        setError(data.error);
+        setError(data.error || 'Credenciales inválidas.');
       }
     } catch (err) {
+      console.error('Error de login:', err);
       setError('No se pudo conectar con el servidor backend.');
+    }
+  };
+
+  const handleLogout = () => {
+    setSession(null);
+    setProductos([]);
+    setUsername('');
+    setPassword('');
+    setError('');
+    setMessage('');
+  };
+
+  const handleAddProducto = (nuevoProducto) => {
+    const nextId = productos.length ? Math.max(...productos.map((p) => p.id)) + 1 : 1;
+    const codigo = `PROD${String(nextId).padStart(3, '0')}`;
+
+    setProductos((prev) => [
+      ...prev,
+      {
+        id: nextId,
+        codigo,
+        nombre: nuevoProducto.nombre,
+        descripcion: nuevoProducto.descripcion,
+        precio: nuevoProducto.precio,
+        stock: nuevoProducto.stock,
+        stockMinimo: nuevoProducto.stockMinimo,
+      },
+    ]);
+    setMessage('Producto agregado correctamente al inventario local.');
+  };
+
+  const handleExecuteMovement = async (productoId, tipoMovimiento, cantidad) => {
+    setError('');
+    setMessage('');
+
+    const producto = productos.find((p) => p.id === productoId);
+    if (!producto) {
+      setError('El producto seleccionado no existe.');
+      return;
+    }
+
+    const tipo = tipoMovimiento === 'SUMA' ? 'ENTRADA' : 'SALIDA';
+
+    try {
+      const response = await fetch(`${BACKEND_BASE}/api/nextrack/movimientos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          codigoProducto: producto.codigo,
+          tipo,
+          cantidad,
+          usuarioResponsable: session.usuario,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || 'Error procesando movimiento.');
+        return;
+      }
+
+      setProductos((prev) =>
+        prev.map((p) =>
+          p.id === productoId ? { ...p, stock: data.stockActualizado } : p
+        )
+      );
+      setMessage(data.mensaje || 'Movimiento procesado correctamente.');
+    } catch (err) {
+      console.error('Error procesando movimiento:', err);
+      setError('No se pudo procesar el movimiento.');
     }
   };
 
@@ -66,39 +162,20 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #ccc' }}>
-        <h2>Nextrack 📦</h2>
-        <p>Bienvenido: <strong>{session.usuario}</strong> ({session.rol})</p>
-        <button onClick={() => setSession(null)}>Cerrar Sesión</button>
-      </header>
+    <div>
+      <Navbar user={{ nombre: session.usuario, rol: session.rol }} onLogout={handleLogout} />
 
-      <h3>Panel de Inventario</h3>
-      <table border="1" cellPadding="10" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f2f2f2' }}>
-            <th>Código</th>
-            <th>Descripción</th>
-            <th>Existencias</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {productos.map(p => (
-            <tr key={p.id}>
-              <td>{p.codigo}</td>
-              <td>{p.nombre}</td>
-              <td>{p.stock}</td>
-              <td>
-                {p.stock <= p.stock_minimo 
-                  ? <span style={{ color: 'red', fontWeight: 'bold' }}>⚠️ Stock Crítico</span> 
-                  : <span style={{ color: 'green' }}>✅ Óptimo</span>
-                }
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div style={{ padding: '24px', display: 'grid', gap: '24px' }}>
+        {error && <div style={{ color: 'red' }}>{error}</div>}
+        {message && <div style={{ color: 'green' }}>{message}</div>}
+
+        <InventoryTable productos={productos} />
+
+        <div style={{ display: 'grid', gap: '24px' }}>
+          <StockMovementForm productos={productos} onExecuteMovement={handleExecuteMovement} />
+          {session.rol === 'Administrador' && <AdminPanel onAddProducto={handleAddProducto} />}
+        </div>
+      </div>
     </div>
   );
 }
