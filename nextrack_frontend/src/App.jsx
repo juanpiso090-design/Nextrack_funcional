@@ -10,10 +10,18 @@ export default function App() {
   // Cargar inventario desde la API real cuando se inicia sesión
   useEffect(() => {
     if (session) {
-      fetch('https://nextrack-backend-3dfo.onrender.com')
-        .then(res => res.json())
+      fetch('https://nextrack-backend-3dfo.onrender.com/api/nextrack/productos')
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Error HTTP ${res.status}`);
+          }
+          return res.json();
+        })
         .then(data => setProductos(data))
-        .catch(err => console.error("Error cargando inventario:", err));
+        .catch(err => {
+          console.error("Error cargando inventario:", err);
+          setError('No se pudo cargar el inventario.');
+        });
     }
   }, [session]);
 
