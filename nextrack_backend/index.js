@@ -61,6 +61,30 @@ app.get('/api/nextrack/productos', (req, res) => {
     res.status(200).json(productos);
 });
 
+// Endpoint: Crear usuario
+app.post('/api/nextrack/usuarios', (req, res) => {
+    const { nombreCompleto, usuario, password, rol } = req.body;
+    if (!nombreCompleto || !usuario || !password || !rol) {
+        return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
+    }
+
+    const existeUsuario = usuarios.some((u) => u.usuario === usuario);
+    if (existeUsuario) {
+        return res.status(409).json({ error: 'El nombre de usuario ya existe.' });
+    }
+
+    const nuevoUsuario = {
+        id: usuarios.length ? Math.max(...usuarios.map((u) => u.id)) + 1 : 1,
+        usuario,
+        password,
+        rol,
+        nombreCompleto,
+    };
+    usuarios.push(nuevoUsuario);
+
+    return res.status(201).json({ mensaje: 'Usuario creado correctamente.', usuario: nuevoUsuario });
+});
+
 // Endpoint: Procesar Movimiento de Almacén con Regla de Negocio
 app.post('/api/nextrack/movimientos', (req, res) => {
     const { codigoProducto, tipo, cantidad, usuarioResponsable } = req.body;

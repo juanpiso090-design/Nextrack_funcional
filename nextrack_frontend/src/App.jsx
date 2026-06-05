@@ -3,6 +3,7 @@ import Navbar from './components/Navbar.jsx';
 import InventoryTable from './components/InventoryTable.jsx';
 import StockMovementForm from './components/StockMovementForm.jsx';
 import AdminPanel from './components/AdminPanel.jsx';
+import UserCreationForm from './components/UserCreationForm.jsx';
 
 const BACKEND_BASE = 'https://nextrack-backend-3dfo.onrender.com';
 
@@ -99,6 +100,10 @@ export default function App() {
     setMessage('Producto agregado correctamente al inventario local.');
   };
 
+  const handleCreateUsuario = (usuarioCreado) => {
+    setMessage(`Usuario ${usuarioCreado.usuario} creado exitosamente.`);
+  };
+
   const handleExecuteMovement = async (productoId, tipoMovimiento, cantidad) => {
     setError('');
     setMessage('');
@@ -173,7 +178,12 @@ export default function App() {
 
         <div style={{ display: 'grid', gap: '24px' }}>
           <StockMovementForm productos={productos} onExecuteMovement={handleExecuteMovement} />
-          {session.rol === 'Administrador' && <AdminPanel onAddProducto={handleAddProducto} />}
+          {session.rol === 'Administrador' && (
+            <>
+              <AdminPanel onAddProducto={handleAddProducto} />
+              <UserCreationForm onCreateUsuario={handleCreateUsuario} />
+            </>
+          )}
         </div>
       </div>
     </div>
