@@ -5,7 +5,7 @@ const app = express();
 
 // Configuración de CORS para permitir la integración con el Frontend de React
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: 'https://nextrack-funcional.vercel.app/',
     methods: ['GET', 'POST']
 }));
 

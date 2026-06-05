@@ -10,7 +10,7 @@ export default function App() {
   // Cargar inventario desde la API real cuando se inicia sesión
   useEffect(() => {
     if (session) {
-      fetch('http://localhost:3000/api/nextrack/productos')
+      fetch('https://nextrack-backend-3dfo.onrender.com')
         .then(res => res.json())
         .then(data => setProductos(data))
         .catch(err => console.error("Error cargando inventario:", err));
@@ -21,7 +21,7 @@ export default function App() {
     e.preventDefault();
     setError('');
     try {
-      const response = await fetch('http://localhost:3000/api/nextrack/auth/login', {
+      const response = await fetch('https://nextrack-backend-3dfo.onrender.com/api/nextrack/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ usuario: username, password })
