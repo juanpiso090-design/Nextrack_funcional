@@ -5,11 +5,30 @@ const app = express();
 
 // Configuración de CORS para permitir la integración con el Frontend de React
 app.use(cors({
-    origin: 'https://nextrack-funcional.vercel.app/',
-    methods: ['GET', 'POST']
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            'https://nextrack-funcional.vercel.app',
+            'https://nextrack-funcional.vercel.app/'
+        ];
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'POST'],
+    credentials: true
 }));
 
 app.use(express.json());
+
+app.get('/', (req, res) => {
+    res.status(200).send('Nextrack backend is running');
+});
+
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
 
 // Base de datos simulada en memoria (Capa de persistencia temporal)
 let usuarios = [
@@ -78,7 +97,7 @@ export function calcularNuevoStock(stockActual, cantidad, tipo) {
     return stockActual;
 }
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Backend de Nextrack integrado en puerto ${PORT}`);
 });
