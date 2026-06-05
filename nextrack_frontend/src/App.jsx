@@ -1,93 +1,96 @@
-import React, { useState } from 'react';
-import LoginCard from './components/LoginCard';
-import Navbar from './components/Navbar';
-import StockMovementForm from './components/StockMovementForm';
-import AdminPanel from './components/AdminPanel';
-import InventoryTable from './components/InventoryTable';
-import './App.css';
+import React, { useState, useEffect } from 'react';
 
-/**
- * Componente Principal de la Aplicación Nextrack
- * Administra el estado global de autenticación y la lista central de productos.
- */
-function App() {
-  // Estado para controlar el usuario autenticado
-  const [user, setUser] = useState(null);
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [productos, setProductos] = useState([]);
+  const [error, setError] = useState('');
 
-  // Estado global simulado con datos iniciales del inventario de Nextrack
-  const [productos, setProductos] = useState([
-    { id: 1, nombre: 'Cable HDMI 4K', descripcion: 'Cable de alta velocidad de 2 metros', precio: 15000, stock: 12, stockMinimo: 5 },
-    { id: 2, nombre: 'Adaptador USB-C', descripcion: 'Conversor a USB 3.0 de aluminio', precio: 25000, stock: 3, stockMinimo: 8 }, // Activa alerta inmediatamente
-    { id: 3, nombre: 'Teclado Mecánico', descripcion: 'Switch azul con retroiluminación RGB', precio: 120000, stock: 15, stockMinimo: 4 }
-  ]);
+  // Cargar inventario desde la API real cuando se inicia sesión
+  useEffect(() => {
+    if (session) {
+      fetch('http://localhost:3000/api/nextrack/productos')
+        .then(res => res.json())
+        .then(data => setProductos(data))
+        .catch(err => console.error("Error cargando inventario:", err));
+    }
+  }, [session]);
 
-  // Función para manejar el inicio de sesión exitoso
-  const loginUser = (userData) => {
-    setUser(userData);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const response = await fetch('http://localhost:3000/api/nextrack/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario: username, password })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setSession(data); // Guarda { usuario, rol }
+      } else {
+        setError(data.error);
+      }
+    } catch (err) {
+      setError('No se pudo conectar con el servidor backend.');
+    }
   };
 
-  // Función para cerrar la sesión activa
-  const logoutUser = () => {
-    setUser(null);
-  };
-
-  // Función global para actualizar existencias desde el formulario de movimientos
-  const actualizarStockGlobal = (idProd, tipo, cantidad) => {
-    setProductos(prevProductos => 
-      prevProductos.map(p => {
-        if (p.id === idProd) {
-          const nuevaCantidad = tipo === 'SUMA' ? p.stock + cantidad : p.stock - cantidad;
-          // Validación técnica: Evitar que el stock caiga por debajo de cero
-          if (nuevaCantidad < 0) {
-            alert(`Error: No hay suficiente stock de "${p.nombre}" para realizar la operación.`);
-            return p;
-          }
-          return { ...p, stock: nuevaCantidad };
-        }
-        return p;
-      })
+  if (!session) {
+    return (
+      <div style={{ padding: '20px', maxWidth: '400px', margin: 'auto' }}>
+        <h2>Nextrack - Ingreso al Sistema</h2>
+        <form onSubmit={handleLogin}>
+          <div>
+            <label>Usuario:</label>
+            <input type="text" value={username} onChange={e => setUsername(e.target.value)} style={{width:'100%', marginBottom:'10px'}} />
+          </div>
+          <div>
+            <label>Contraseña:</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{width:'100%', marginBottom:'10px'}} />
+          </div>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+          <button type="submit" style={{width:'100%', padding:'10px'}}>Autenticar</button>
+        </form>
+      </div>
     );
-  };
-
-  // Función exclusiva para que el Administrador registre nuevos artículos
-  const agregarProductoNuevo = (nuevoProd) => {
-    setProductos(prev => [...prev, { ...nuevoProd, id: prev.length + 1 }]);
-  };
-
-  // Renderizado Condicional: Si no está logueado, muestra exclusivamente la pantalla de Login
-  if (!user) {
-    return <LoginCard onLoginSuccess={loginUser} />;
   }
 
-  // Interfaz del Dashboard Principal una vez autenticado
   return (
-    <div className="app-container">
-      <Navbar user={user} onLogout={logoutUser} />
-      
-      <main className="dashboard-content">
-        <section className="modules-grid">
-          {/* Módulo de Operaciones: Accesible para Operarios y Administradores */}
-          <div className="card-wrapper">
-            <h2>Módulo de Movimientos</h2>
-            <StockMovementForm productos={productos} onExecuteMovement={actualizarStockGlobal} />
-          </div>
+    <div style={{ padding: '20px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #ccc' }}>
+        <h2>Nextrack 📦</h2>
+        <p>Bienvenido: <strong>{session.usuario}</strong> ({session.rol})</p>
+        <button onClick={() => setSession(null)}>Cerrar Sesión</button>
+      </header>
 
-          {/* Módulo de Administración: Renderizado condicional estricto por Rol */}
-          {user.rol === 'Administrador' && (
-            <div className="card-wrapper admin-theme">
-              <h2 style={{ color: '#d35400' }}>Módulo de Administración (Exclusivo Admin)</h2>
-              <AdminPanel onAddProducto={agregarProductoNuevo} />
-            </div>
-          )}
-        </section>
-
-        {/* Tabla General de Inventario: Visible para todos los usuarios */}
-        <section className="inventory-section">
-          <InventoryTable productos={productos} />
-        </section>
-      </main>
+      <h3>Panel de Inventario</h3>
+      <table border="1" cellPadding="10" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ backgroundColor: '#f2f2f2' }}>
+            <th>Código</th>
+            <th>Descripción</th>
+            <th>Existencias</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {productos.map(p => (
+            <tr key={p.id}>
+              <td>{p.codigo}</td>
+              <td>{p.nombre}</td>
+              <td>{p.stock}</td>
+              <td>
+                {p.stock <= p.stock_minimo 
+                  ? <span style={{ color: 'red', fontWeight: 'bold' }}>⚠️ Stock Crítico</span> 
+                  : <span style={{ color: 'green' }}>✅ Óptimo</span>
+                }
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
-
-export default App;
