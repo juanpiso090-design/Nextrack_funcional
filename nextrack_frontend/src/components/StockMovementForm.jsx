@@ -29,6 +29,7 @@ const StockMovementForm = ({ productos, onExecuteMovement }) => {
 
   return (
     <form onSubmit={handleProcess} className="movement-form">
+      <h2 style={{ marginBottom: '20px' }}>Añadir movimiento</h2>
       <div className="form-group">
         <label>Seleccionar Producto por ID:</label>
         <input 

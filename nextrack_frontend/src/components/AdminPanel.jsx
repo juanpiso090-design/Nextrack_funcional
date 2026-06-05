@@ -34,6 +34,7 @@ const AdminPanel = ({ onAddProducto }) => {
 
   return (
     <form onSubmit={handleCreate} className="admin-form">
+      <h2 style={{ marginBottom: '20px' }}>Crear producto</h2>
       <div className="form-group">
         <label>Nombre del Producto:</label>
         <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} required placeholder="Ej: Monitor LED" />
