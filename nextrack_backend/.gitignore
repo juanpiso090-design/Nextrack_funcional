@@ -1,0 +1,10 @@
+target/
+.netbeans/
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.mtj.tmp/
+*.war
+*.ear
+*.rar
