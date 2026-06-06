@@ -170,21 +170,32 @@ export default function App() {
     <div>
       <Navbar user={{ nombre: session.usuario, rol: session.rol }} onLogout={handleLogout} />
 
-      <div style={{ padding: '24px', display: 'grid', gap: '24px' }}>
-        {error && <div style={{ color: 'red' }}>{error}</div>}
-        {message && <div style={{ color: 'green' }}>{message}</div>}
+      <div className="container">
+        {error && <div className="message-error">{error}</div>}
+        {message && <div className="message-success">{message}</div>}
+
+        <h2>Módulo de Movimientos (Operario / Administrador)</h2>
+        <div className="grid">
+          <div className="card">
+            <StockMovementForm productos={productos} onExecuteMovement={handleExecuteMovement} />
+          </div>
+        </div>
+
+        {session.rol === 'Administrador' && (
+          <>
+            <h2 style={{ marginTop: 40, color: '#d35400' }}>Módulo de Administración (Exclusivo Admin)</h2>
+            <div className="grid">
+              <div className="card">
+                <AdminPanel onAddProducto={handleAddProducto} />
+              </div>
+              <div className="card">
+                <UserCreationForm onCreateUsuario={handleCreateUsuario} />
+              </div>
+            </div>
+          </>
+        )}
 
         <InventoryTable productos={productos} />
-
-        <div style={{ display: 'grid', gap: '24px' }}>
-          <StockMovementForm productos={productos} onExecuteMovement={handleExecuteMovement} />
-          {session.rol === 'Administrador' && (
-            <>
-              <AdminPanel onAddProducto={handleAddProducto} />
-              <UserCreationForm onCreateUsuario={handleCreateUsuario} />
-            </>
-          )}
-        </div>
       </div>
     </div>
   );
