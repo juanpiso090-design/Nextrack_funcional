@@ -46,7 +46,7 @@ th { background-color: #efefef; color: #333; }
 /* Add consistent module spacing */
 .grid { gap: 24px; }
 .card { padding: 22px; }
-}
+
 .message-error {
   background: #f8d7da;
   color: #721c24;
