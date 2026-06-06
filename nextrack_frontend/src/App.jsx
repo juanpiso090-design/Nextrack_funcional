@@ -176,7 +176,7 @@ export default function App() {
 
         <h2>Módulo de Movimientos (Operario / Administrador)</h2>
         <div className="grid">
-          <div className="card">
+          <div className="card module-movements">
             <StockMovementForm productos={productos} onExecuteMovement={handleExecuteMovement} />
           </div>
         </div>
@@ -185,10 +185,10 @@ export default function App() {
           <>
             <h2 style={{ marginTop: 40, color: '#d35400' }}>Módulo de Administración (Exclusivo Admin)</h2>
             <div className="grid">
-              <div className="card">
+              <div className="card module-admin">
                 <AdminPanel onAddProducto={handleAddProducto} />
               </div>
-              <div className="card">
+              <div className="card module-admin">
                 <UserCreationForm onCreateUsuario={handleCreateUsuario} />
               </div>
             </div>

@@ -33,6 +33,19 @@ th { background-color: #efefef; color: #333; }
   50% { transform: translateX(6px); }
   100% { transform: translateX(0); }
 }
+
+/* Module accents and spacing */
+.module-movements { border-left: 6px solid #3498db; padding-left: 16px; }
+.module-admin { border-left: 6px solid #e67e22; padding-left: 16px; }
+.table-container { border-left: 6px solid #2ecc71; padding-left: 14px; }
+
+/* Ensure navbar layout positions title left and user info right */
+.navbar { display: flex; justify-content: space-between; align-items: center; }
+.user-area { display: flex; align-items: center; gap: 12px; }
+
+/* Add consistent module spacing */
+.grid { gap: 24px; }
+.card { padding: 22px; }
 }
 .message-error {
   background: #f8d7da;

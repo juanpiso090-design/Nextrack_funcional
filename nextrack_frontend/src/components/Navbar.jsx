@@ -6,9 +6,12 @@ import React from 'react';
 const Navbar = ({ user, onLogout }) => {
   return (
     <header className="navbar">
-      <h1>Nextrack - Gestión de Inventario</h1>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <div style={{ marginRight: '12px' }}>
+        <h1 style={{ margin: 0, fontSize: '20px' }}>Nextrack</h1>
+      </div>
+
+      <div className="user-area" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="user-info">
           Bienvenido, <strong>{user.nombre}</strong> | Rol: <span className="badge">{user.rol}</span>
         </div>
         <button onClick={onLogout} className="btn-logout">Cerrar Sesión</button>
