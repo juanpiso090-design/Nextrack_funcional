@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import './App.css';
 import Navbar from './components/Navbar.jsx';
 import InventoryTable from './components/InventoryTable.jsx';
 import StockMovementForm from './components/StockMovementForm.jsx';
