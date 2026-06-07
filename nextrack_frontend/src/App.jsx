@@ -82,23 +82,35 @@ export default function App() {
     setMessage('');
   };
 
-  const handleAddProducto = (nuevoProducto) => {
-    const nextId = productos.length ? Math.max(...productos.map((p) => p.id)) + 1 : 1;
-    const codigo = `PROD${String(nextId).padStart(3, '0')}`;
+  const handleAddProducto = async (nuevoProducto) => {
+    setError('');
+    setMessage('');
 
-    setProductos((prev) => [
-      ...prev,
-      {
-        id: nextId,
-        codigo,
-        nombre: nuevoProducto.nombre,
-        descripcion: nuevoProducto.descripcion,
-        precio: nuevoProducto.precio,
-        stock: nuevoProducto.stock,
-        stockMinimo: nuevoProducto.stockMinimo,
-      },
-    ]);
-    setMessage('Producto agregado correctamente al inventario local.');
+    try {
+      const response = await fetch(`${BACKEND_BASE}/api/nextrack/productos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: nuevoProducto.nombre,
+          descripcion: nuevoProducto.descripcion,
+          stock: nuevoProducto.stock,
+          stockMinimo: nuevoProducto.stockMinimo,
+          precio: nuevoProducto.precio,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || 'No se pudo guardar el producto.');
+        return;
+      }
+
+      setMessage(data.mensaje || 'Producto creado correctamente.');
+      cargarInventario();
+    } catch (err) {
+      console.error('Error creando producto:', err);
+      setError('No se pudo conectar con el servidor backend.');
+    }
   };
 
   const handleCreateUsuario = (usuarioCreado) => {

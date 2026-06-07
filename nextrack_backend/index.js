@@ -61,6 +61,29 @@ app.get('/api/nextrack/productos', (req, res) => {
     res.status(200).json(productos);
 });
 
+// Endpoint: Crear producto
+app.post('/api/nextrack/productos', (req, res) => {
+    const { nombre, descripcion, stock, stockMinimo, precio } = req.body;
+    if (!nombre || stock == null || stockMinimo == null || precio == null) {
+        return res.status(400).json({ error: 'Faltan campos obligatorios para crear el producto.' });
+    }
+
+    const nextId = productos.length ? Math.max(...productos.map((p) => p.id)) + 1 : 1;
+    const codigo = `PROD${String(nextId).padStart(2, '0')}`;
+    const nuevoProducto = {
+        id: nextId,
+        codigo,
+        nombre,
+        descripcion: descripcion || '',
+        precio: Number(precio),
+        stock: Number(stock),
+        stockMinimo: Number(stockMinimo),
+    };
+
+    productos.push(nuevoProducto);
+    return res.status(201).json({ mensaje: 'Producto creado correctamente.', producto: nuevoProducto });
+});
+
 // Endpoint: Crear usuario
 app.post('/api/nextrack/usuarios', (req, res) => {
     const { nombreCompleto, usuario, password, rol } = req.body;
