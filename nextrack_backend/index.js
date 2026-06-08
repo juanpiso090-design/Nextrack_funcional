@@ -62,10 +62,25 @@ app.get('/api/nextrack/productos', (req, res) => {
     res.status(200).json(productos);
 });
 
-// Endpoint: Crear producto
-app.post('/api/nextrack/productos', (req, res) => {
-    const { nombre, descripcion, stock, stockMinimo, precio } = req.body;
-    if (!nombre || stock == null || stockMinimo == null || precio == null) {
+const crearProducto = (req, res) => {
+    const {
+      nombre,
+      descripcion,
+      stock,
+      stockMinimo,
+      precio,
+      nombreProducto,
+      stockInicial,
+      stockMinimo: stockMinimoForm,
+    } = req.body;
+
+    const productoNombre = nombre || nombreProducto;
+    const productoDescripcion = descripcion || req.body.descripcion || '';
+    const productoStock = stock != null ? stock : stockInicial;
+    const productoStockMinimo = stockMinimo != null ? stockMinimo : stockMinimoForm;
+    const productoPrecio = precio || req.body.precio;
+
+    if (!productoNombre || productoStock == null || productoStockMinimo == null || productoPrecio == null) {
         return res.status(400).json({ error: 'Faltan campos obligatorios para crear el producto.' });
     }
 
@@ -74,16 +89,20 @@ app.post('/api/nextrack/productos', (req, res) => {
     const nuevoProducto = {
         id: nextId,
         codigo,
-        nombre,
-        descripcion: descripcion || '',
-        precio: Number(precio),
-        stock: Number(stock),
-        stockMinimo: Number(stockMinimo),
+        nombre: productoNombre,
+        descripcion: productoDescripcion,
+        precio: Number(productoPrecio),
+        stock: Number(productoStock),
+        stockMinimo: Number(productoStockMinimo),
     };
 
     productos.push(nuevoProducto);
     return res.status(201).json({ mensaje: 'Producto creado correctamente.', producto: nuevoProducto });
-});
+};
+
+// Endpoint: Crear producto
+app.post('/api/nextrack/productos', crearProducto);
+app.post('/ProductoServlet', crearProducto);
 
 // Endpoint: Crear usuario
 app.post('/api/nextrack/usuarios', (req, res) => {
