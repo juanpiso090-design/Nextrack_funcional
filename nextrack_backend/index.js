@@ -21,6 +21,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
     res.status(200).send('Nextrack backend is running');
@@ -108,10 +109,8 @@ app.post('/api/nextrack/usuarios', (req, res) => {
     return res.status(201).json({ mensaje: 'Usuario creado correctamente.', usuario: nuevoUsuario });
 });
 
-// Endpoint: Procesar Movimiento de Almacén con Regla de Negocio
-app.post('/api/nextrack/movimientos', (req, res) => {
+const procesarMovimiento = (req, res) => {
     const { codigoProducto, tipo, cantidad, usuarioResponsable } = req.body;
-    
     const producto = productos.find(p => p.codigo === codigoProducto);
     if (!producto) return res.status(404).json({ error: "Producto no encontrado." });
 
@@ -129,7 +128,11 @@ app.post('/api/nextrack/movimientos', (req, res) => {
     movimientos.push(nuevoMovimiento);
 
     res.status(201).json({ mensaje: "Movimiento procesado", stockActualizado: producto.stock });
-});
+};
+
+// Endpoint: Procesar Movimiento de Almacén con Regla de Negocio
+app.post('/api/nextrack/movimientos', procesarMovimiento);
+app.post('/MovimientoServlet', procesarMovimiento);
 
 // ==========================================
 // 🧪 PRUEBAS UNITARIAS AUTOMATIZADAS (Requerimiento de Guía)
